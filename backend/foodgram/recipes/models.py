@@ -51,10 +51,15 @@ class Recipe(models.Model):
     using_ingredients = models.ManyToManyField(Ingredient,
                                                through='IngredientContent',
                                                verbose_name='Ингредиенты')
+    pub_date = models.DateTimeField('Дата публикации',
+                                    auto_now_add=True,
+                                    blank=True,
+                                    null=True)
 
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return f'Рецепт {self.name}'
