@@ -14,7 +14,6 @@ User = get_user_model()
 
 
 class FoodgramUserViewSet(UserViewSet):
-    pagination_class = LimitOffsetPagination
 
     @action(methods=['get', 'delete'], detail=True)
     def subscribe(self, request, *args, **kwargs):
@@ -26,7 +25,7 @@ class FoodgramUserViewSet(UserViewSet):
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data['author'],
+                return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -34,10 +33,15 @@ class FoodgramUserViewSet(UserViewSet):
         if request.method == 'DELETE':
             author = get_object_or_404(User, id=self.kwargs.get('id'))
             subscriber = get_object_or_404(User, id=request.user.id)
-            subscription = get_object_or_404(Subscription,
-                                             author=author,
-                                             subscriber=subscriber)
-            subscription.delete()
+            # subscription = get_object_or_404(Subscription,
+            #                                  author=author,
+            #                                  subscriber=subscriber)
+            subscriptions = Subscription.objects.filter(
+                author=author,
+                subscriber=subscriber
+            )
+            for subscription in subscriptions:
+                subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
 

@@ -5,7 +5,7 @@ from django.utils import http
 from rest_framework import serializers
 
 from . import models as m
-from users.serializers import FoodgramUserSerializer
+from users.user_serializer import FoodgramUserSerializer
 
 
 class CustomImageFiled(Base64ImageField):

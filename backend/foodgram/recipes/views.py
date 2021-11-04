@@ -1,11 +1,15 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters import filterset
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+# from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
-from .actions import actions
-from .models import Favorited, IngredientContent, Tag, Recipe, ShoppingCart
+from .filters import RecipeFilter
+from .models import Favorited, Tag, Recipe, ShoppingCart
+from .pagination import LimitPagePagination
 from .serializers import (TagSerializer, RecipeSerializer, FavoritedSerializer,
                           ShoppingCartSerializer)
 from .utils import get_shopping_cart
@@ -17,6 +21,9 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
+    pagination_class = LimitPagePagination
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
