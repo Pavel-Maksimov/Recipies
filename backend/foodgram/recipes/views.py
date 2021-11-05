@@ -1,31 +1,56 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django_filters import filterset
-from rest_framework import status, viewsets
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
-# from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from .filters import RecipeFilter
 from .models import Favorited, Tag, Recipe, ShoppingCart
-from .pagination import LimitPagePagination
+from .permissions import IsAuthorOrStaff
 from .serializers import (TagSerializer, RecipeSerializer, FavoritedSerializer,
                           ShoppingCartSerializer)
 from .utils import get_shopping_cart
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    View to .list() and .retrieve() tags.
+
+    * Available for all users.
+    """
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """
+    View to CRUD recipes.
+
+    * Safe methods are available for Anonymous,
+    others - for recipe's author or staff only.
+
+    Additional endpoints:
+    * 'recipes/favorite/' endpoint allows authenticated user to add and delete
+    recipes to favorited list.
+    * 'recipes/shopping_cart/' endpoint allows authenticated user to add and
+    delete recipes to shopping_cart.
+    * 'recipes/download_shopping_cart/' endpoint allows authenticated user to
+    download a shopping_cart as .txt file.
+    """
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          IsAuthorOrStaff,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
-    pagination_class = LimitPagePagination
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+
+    def get_permissions(self):
+        if self.action in ('favorite',
+                           'shopping_cart',
+                           'download_shopping_cart'):
+            return (permissions.IsAuthenticated(),)
+        return super().get_permissions()
 
     @action(methods=['get', 'delete'], detail=True)
     def favorite(self, request, *args, **kwargs):
@@ -74,5 +99,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         sending_data = get_shopping_cart(request)
         return HttpResponse(sending_data, headers={
             'Content-Type': 'text/plain',
-            'Content-Disposition': 'attachment; filename="shopping_carts.txt"'
+            'Content-Disposition': 'attachment; filename="shopping_cart.txt"'
         })

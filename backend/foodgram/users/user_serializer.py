@@ -6,6 +6,13 @@ from .models import Subscription
 
 User = get_user_model()
 
+# Вывел FoodgramUserSerializer в отдельный файл для
+# устранения циклического импорта, т.к.
+# users.serializers.py вызвает
+# from recipes.serializers import RecipeSerializer,
+# а recipes.serializers.py вызывает
+# данный FoodgramUserSerializer.
+
 
 class FoodgramUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
@@ -16,10 +23,15 @@ class FoodgramUserSerializer(UserSerializer):
                   "last_name", 'is_subscribed')
 
     def get_is_subscribed(self, author):
-        subscription = Subscription.objects.filter(
-            author=author,
-            subscriber=self.context['request'].user
-        )
-        if subscription.exists():
-            return True
+        """
+        Check if current authenticated user is subscribed to
+        requested user.
+        """
+        if self.context['request'].user.is_authenticated:
+            subscription = Subscription.objects.filter(
+                author=author,
+                subscriber=self.context['request'].user
+            )
+            if subscription.exists():
+                return True
         return False

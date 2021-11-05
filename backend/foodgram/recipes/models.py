@@ -11,7 +11,8 @@ class Tag(models.Model):
     color = models.CharField('Цвет в HEX',
                              max_length=7)
     slug = models.SlugField('Уникальный слаг',
-                            max_length=200)
+                            max_length=200,
+                            unique=True)
 
     class Meta:
         verbose_name = 'Тег'
@@ -38,7 +39,8 @@ class Ingredient(models.Model):
 class Recipe(models.Model):
     author = models.ForeignKey(User,
                                on_delete=CASCADE,
-                               related_name='recipes')
+                               related_name='recipes',
+                               verbose_name='Автор')
     name = models.CharField('Название',
                             max_length=200)
     image = models.ImageField('Картинка',
@@ -77,6 +79,10 @@ class IngredientContent(models.Model):
     class Meta:
         verbose_name = 'Содержание ингредиента в рецепте'
         verbose_name_plural = 'Содержание ингредиентов в рецепте'
+        models.UniqueConstraint(
+            fields=['ingredient', 'recipe'],
+            name='once_added_ingredient'
+        )
 
     def __str__(self):
         return (f'Содержание ингредиента {self.ingredient}'
@@ -94,6 +100,10 @@ class Favorited(models.Model):
     class Meta:
         verbose_name = 'Избранные рецепты'
         verbose_name_plural = 'Избранные рецепты'
+        models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='once_favorited'
+        )
 
 
 class ShoppingCart(models.Model):
@@ -107,3 +117,7 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
+        models.UniqueConstraint(
+            fields=['user', 'recipe'],
+            name='once_in_shopping_cart'
+        )

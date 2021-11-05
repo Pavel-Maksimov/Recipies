@@ -3,7 +3,7 @@ from django.db import models
 
 
 class FoodgramUser(AbstractUser):
-    username = models.CharField("логин",
+    username = models.CharField("юзернейм",
                                 max_length=150,
                                 unique=True
                                 )

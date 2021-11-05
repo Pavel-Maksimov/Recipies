@@ -1,8 +1,6 @@
 from drf_base64.fields import Base64ImageField
-from django.conf import settings
-from django.core.files.images import ImageFile
-from django.utils import http
 from rest_framework import serializers
+from rest_framework import validators
 
 from . import models as m
 from users.user_serializer import FoodgramUserSerializer
@@ -11,19 +9,6 @@ from users.user_serializer import FoodgramUserSerializer
 class CustomImageFiled(Base64ImageField):
     def to_representation(self, value):
         return value.url
-
-    # def to_internal_value(self, data):
-    #     # print('data', data)
-    #     data = http.urlsafe_base64_decode(data)
-    #     path = settings.MEDIA_ROOT + f'/{self.field_name}.jpeg'
-    #     print('self.field_name:', self.field_name)
-    #     f = open(path, 'wb')
-    #     # print('data', data)
-    #     f.write(data)
-    #     f.close()
-    #     # print('data', data)
-    #     print('ImageFile(f).name:', ImageFile(f).name)
-    #     return ImageFile(f).name
 
 
 class TagField(serializers.PrimaryKeyRelatedField):
@@ -52,7 +37,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 class IngredientContentSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=m.Ingredient.objects.all(),
-        source='ingredient.id'
+        source='ingredient.id',
+        validators=[validators.UniqueValidator(
+            queryset=m.Ingredient.objects.all(),
+            message='В рецепт ингредиент можно добавлять только единожды'
+        )]
     )
     name = serializers.CharField(source='ingredient.name',
                                  read_only=True)
@@ -87,25 +76,34 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        favorited = m.Favorited.objects.filter(
-            recipe=obj,
-            user=self.context['request'].user
-        )
-        if favorited.exists():
-            return True
+        """
+        Check if the recipe object in favorited list for current
+        authenticated user.
+        """
+        if self.context['request'].user.is_authenticated:
+            favorited = m.Favorited.objects.filter(
+                recipe=obj,
+                user=self.context['request'].user
+            )
+            if favorited.exists():
+                return True
         return False
 
     def get_is_in_shopping_cart(self, obj):
-        shopping_cart = m.ShoppingCart.objects.filter(
-            recipe=obj,
-            user=self.context['request'].user
-        )
-        if shopping_cart.exists():
-            return True
+        """
+        Check if the recipe object in shopping cart for current
+        authenticated user.
+        """
+        if self.context['request'].user.is_authenticated:
+            shopping_cart = m.ShoppingCart.objects.filter(
+                recipe=obj,
+                user=self.context['request'].user
+            )
+            if shopping_cart.exists():
+                return True
         return False
 
     def create(self, validated_data):
-        print('self.context[request]:', self.context)
         new_recipe = m.Recipe.objects.create(
             author=self.context['request'].user,
             image=validated_data['image'],
@@ -124,6 +122,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         new_recipe.tags.set(validated_data['tags'])
         return new_recipe
 
+    def update(self, instance, validated_data):
+        instance.author = self.context['request'].user
+        instance.image = validated_data.get('image', instance.image)
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
+        )
+        instance.save()
+        m.IngredientContent.objects.filter(recipe=instance).delete()
+        ingredients = validated_data['ingredients']
+        for ingredient in ingredients:
+            ingr, amount = ingredient.values()
+            m.IngredientContent.objects.create(
+                recipe=instance,
+                ingredient=ingr['id'],
+                amount=amount
+            )
+        instance.tags.set(validated_data['tags'])
+        return instance
+
 
 class FavoritedSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=m.Recipe.objects.all(),
@@ -140,11 +160,25 @@ class FavoritedSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
     def create(self, validated_data):
-        print('validated_data', validated_data)
         return m.Favorited.objects.create(
             recipe=validated_data['recipe']['id'],
             user=self.context['request'].user
         )
+
+    def validate(self, data):
+        """
+        Check that the recipe is not already in favoreted list for
+        current user.
+        """
+        favorite = m.Favorited.objects.filter(
+            recipe=data['recipe']['id'],
+            user=self.context['request'].user
+        )
+        if favorite.exists():
+            raise serializers.ValidationError(
+                'Вы уже добавили этот рецепт в избранное.'
+            )
+        return data
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -162,8 +196,22 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'image', 'cooking_time')
 
     def create(self, validated_data):
-        print('validated_data', validated_data)
         return m.ShoppingCart.objects.create(
             recipe=validated_data['recipe']['id'],
             user=self.context['request'].user
         )
+
+    def validate(self, data):
+        """
+        Check that the recipe is not already in shoppint_cart for
+        current user.
+        """
+        favorite = m.ShoppingCart.objects.filter(
+            recipe=data['recipe']['id'],
+            user=self.context['request'].user
+        )
+        if favorite.exists():
+            raise serializers.ValidationError(
+                'Вы уже добавили этот рецепт в список покупок.'
+            )
+        return data

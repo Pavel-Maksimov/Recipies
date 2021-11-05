@@ -1,6 +1,6 @@
 import django_filters
 
-from .models import Favorited, Recipe, ShoppingCart
+from .models import Favorited, ShoppingCart
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -18,18 +18,20 @@ class RecipeFilter(django_filters.FilterSet):
     )
 
     def check_recipes(self, queryset, name, value):
-        if name == 'is_in_shopping_cart':
-            filtering_queryset = ShoppingCart.objects.filter(
-                user=self.request.user
-            )
-            field = 'shopper'
-        elif name == 'is_favorited':
-            filtering_queryset = Favorited.objects.filter(
-                user=self.request.user
-            )
-            field = 'fans'
-        lookup = '__'.join([field, 'in'])
-        if value == 1:
-            return queryset.filter(**{lookup: filtering_queryset})
-        if value == 0:
-            return queryset.exclude(**{lookup: filtering_queryset})
+        if self.request.user.is_authenticated:
+            if name == 'is_in_shopping_cart':
+                filtering_queryset = ShoppingCart.objects.filter(
+                    user=self.request.user
+                )
+                field = 'shopper'
+            elif name == 'is_favorited':
+                filtering_queryset = Favorited.objects.filter(
+                    user=self.request.user
+                )
+                field = 'fans'
+            lookup = '__'.join([field, 'in'])
+            if value == 1:
+                return queryset.filter(**{lookup: filtering_queryset})
+            if value == 0:
+                return queryset.exclude(**{lookup: filtering_queryset})
+        return queryset

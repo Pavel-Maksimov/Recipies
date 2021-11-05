@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserCreateSerializer
 from recipes.models import Recipe
 
 from recipes.serializers import RecipeSerializer
@@ -14,24 +14,6 @@ class FoodgramUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
         fields = ("email", "username", "first_name", "last_name", "password",)
-
-
-# class FoodgramUserSerializer(UserSerializer):
-#     is_subscribed = serializers.SerializerMethodField()
-
-#     class Meta:
-#         model = User
-#         fields = ("email", 'id', "username", "first_name",
-#                   "last_name", 'is_subscribed')
-
-#     def get_is_subscribed(self, author):
-#         subscription = Subscription.objects.filter(
-#             author=author,
-#             subscriber=self.context['request'].user
-#         )
-#         if subscription.exists():
-#             return True
-#         return False
 
 
 class ShortRecipeSerializer(RecipeSerializer):
@@ -86,15 +68,27 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         model = Subscription
         fields = ('author', 'subscriber')
 
-    # def create(self, validated_data):
-    #     print('val.data:', validated_data)
-    #     return Subscription.objects.create(
-    #         author=validated_data['author'],
-    #         subscriber=validated_data['subscriber']
-        # )
-
     def to_representation(self, value):
         author = User.objects.get(id=value.author.id)
         serializer = AuthorSerializer(
             author, context={'request': self.context['request']})
         return serializer.data
+
+    def validate(self, data):
+        """
+        Check if the user is requested to subscribe on
+        is not current user and is not already in subscriptions.
+        """
+        if data['author'] == data['subscriber']:
+            raise serializers.ValidationError(
+                'Вы не можете подписаться на самого себя.'
+            )
+        subscription = Subscription.objects.filter(
+            author=data['author'],
+            subscriber=data['subscriber']
+        )
+        if subscription.exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого автора.'
+            )
+        return data

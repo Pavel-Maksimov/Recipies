@@ -120,8 +120,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DEFAULT_PAGE_SIZE = 6
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -133,6 +131,8 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PAGINATION_CLASS': 'recipes.pagination.LimitPagePagination',
 }
+
+DEFAULT_PAGE_SIZE = 6
 
 DJOSER = {
     'SERIALIZERS': {

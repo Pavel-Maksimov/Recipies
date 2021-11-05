@@ -6,7 +6,8 @@ from . import views
 router_v1 = DefaultRouter()
 
 router_v1.register('users',
-                   views.FoodgramUserViewSet)
+                   views.FoodgramUserViewSet,
+                   basename='users')
 
 urlpatterns = [
     path('users/subscriptions/',
