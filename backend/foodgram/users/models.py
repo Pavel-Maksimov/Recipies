@@ -3,31 +3,31 @@ from django.db import models
 
 
 class FoodgramUser(AbstractUser):
-    username = models.CharField("юзернейм",
+    username = models.CharField('юзернейм',
                                 max_length=150,
                                 unique=True
                                 )
     email = models.EmailField(max_length=254,
                               unique=True
                               )
-    first_name = models.CharField("имя",
+    first_name = models.CharField('имя',
                                   max_length=150
                                   )
-    last_name = models.CharField("фамилия",
+    last_name = models.CharField('фамилия',
                                  max_length=150
                                  )
-    password = models.CharField("пароль",
+    password = models.CharField('пароль',
                                 max_length=150
                                 )
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["username", "first_name", "last_name"]
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(FoodgramUser, on_delete=models.CASCADE,
-                                   related_name="subscribtions")
+                                   related_name='subscribtions')
     author = models.ForeignKey(FoodgramUser, on_delete=models.CASCADE,
-                               related_name="subscribers")
+                               related_name='subscribers')
 
     class Meta:
         verbose_name = 'Подписка'
@@ -38,4 +38,4 @@ class Subscription(models.Model):
         )
 
         def __str__(self):
-            return f"Пописка {self.subscriber}, автор {self.author}"
+            return f'Пописка {self.subscriber}, автор {self.author}'

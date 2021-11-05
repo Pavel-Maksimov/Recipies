@@ -4,6 +4,21 @@ from .models import Favorited, ShoppingCart
 
 
 class RecipeFilter(django_filters.FilterSet):
+    """
+    Custom filter class for RecipeViewSet.
+
+    Accepted query parameters:
+    -'author' - integer, show recipes, that's author has the entered id;
+    -'tags' - slug, show recipes with entered tags;
+    -'is_in_shopping_cart' - integer, accept valies:
+        0 - show recipes not included into current user's shopping_cart;
+        1 - show recipes included into current user's shopping_cart;
+    -'is_favorited' - integer, accept valies:
+        0 - show recipes not included into current user's list
+            of favorited recipes;
+        1 - show recipes included into current user's list
+            of favorited recipes;
+    """
     author = django_filters.NumberFilter(
         field_name='author__id',
     )

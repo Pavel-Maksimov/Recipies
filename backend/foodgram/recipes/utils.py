@@ -2,6 +2,10 @@ from .models import IngredientContent, ShoppingCart
 
 
 def get_shopping_cart(request):
+    """
+    Create a string with sum for necessary ingredients
+    for cooking recipes in shopping_cart.
+    """
     summary = dict()
     shopping_cart = ShoppingCart.objects.filter(user=request.user)
     for wish in shopping_cart:

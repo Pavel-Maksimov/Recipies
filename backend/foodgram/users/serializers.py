@@ -13,7 +13,7 @@ User = get_user_model()
 class FoodgramUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = ("email", "username", "first_name", "last_name", "password",)
+        fields = ('email', 'username', 'first_name', 'last_name', 'password',)
 
 
 class ShortRecipeSerializer(RecipeSerializer):
@@ -28,8 +28,8 @@ class AuthorSerializer(FoodgramUserSerializer):
 
     class Meta:
         model = User
-        fields = ("email", 'id', "username", "first_name",
-                  "last_name", 'is_subscribed', 'recipes', 'recipes_count')
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
