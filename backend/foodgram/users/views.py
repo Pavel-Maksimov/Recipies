@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status
+
 from djoser.views import UserViewSet
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
@@ -34,16 +35,22 @@ class FoodgramUserViewSet(UserViewSet):
     def subscribe(self, request, *args, **kwargs):
         if request.method == 'GET':
             serializer = SubscriptionSerializer(
-                data={'author': self.kwargs.get('id'),
-                      'subscriber': request.user.id},
+                data={
+                    'author': self.kwargs.get('id'),
+                    'subscriber': request.user.id
+                },
                 context={'request': request},
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if request.method == 'DELETE':
             author = get_object_or_404(User, id=self.kwargs.get('id'))

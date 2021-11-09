@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
-from djoser.serializers import UserCreateSerializer
-from recipes.models import Recipe
 
-from recipes.serializers import RecipeSerializer
-from .models import Subscription
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
+
+from recipes.models import Recipe
+from recipes.serializers import RecipeSerializer
+
+from .models import Subscription
 from .user_serializer import FoodgramUserSerializer
 
 User = get_user_model()
@@ -28,8 +30,10 @@ class AuthorSerializer(FoodgramUserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed', 'recipes', 'recipes_count'
+        )
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -50,7 +54,8 @@ class AuthorField(serializers.PrimaryKeyRelatedField):
     def to_representation(self, value):
         author = User.objects.get(id=value.pk)
         serializer = AuthorSerializer(
-            author, context={'request': self.context['request']})
+            author, context={'request': self.context['request']}
+        )
         return serializer.data
 
 

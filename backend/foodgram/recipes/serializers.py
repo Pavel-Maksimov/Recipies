@@ -1,9 +1,9 @@
 from drf_base64.fields import Base64ImageField
-from rest_framework import serializers
-from rest_framework import validators
+from rest_framework import serializers, validators
+
+from users.user_serializer import FoodgramUserSerializer
 
 from . import models as m
-from users.user_serializer import FoodgramUserSerializer
 
 
 class CustomImageFiled(Base64ImageField):
@@ -146,14 +146,22 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class FavoritedSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=m.Recipe.objects.all(),
-                                            source='recipe.id')
-    name = serializers.CharField(source='recipe.name',
-                                 read_only=True)
-    image = serializers.ImageField(source='recipe.image',
-                                   read_only=True)
-    cooking_time = serializers.IntegerField(source='recipe.cooking_time',
-                                            read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=m.Recipe.objects.all(),
+        source='recipe.id'
+    )
+    name = serializers.CharField(
+        source='recipe.name',
+        read_only=True
+    )
+    image = serializers.ImageField(
+        source='recipe.image',
+        read_only=True
+    )
+    cooking_time = serializers.IntegerField(
+        source='recipe.cooking_time',
+        read_only=True
+    )
 
     class Meta:
         model = m.Favorited
@@ -182,14 +190,22 @@ class FavoritedSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    id = serializers.PrimaryKeyRelatedField(queryset=m.Recipe.objects.all(),
-                                            source='recipe.id')
-    name = serializers.CharField(source='recipe.name',
-                                 read_only=True)
-    image = serializers.ImageField(source='recipe.image',
-                                   read_only=True)
-    cooking_time = serializers.IntegerField(source='recipe.cooking_time',
-                                            read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=m.Recipe.objects.all(),
+        source='recipe.id'
+    )
+    name = serializers.CharField(
+        source='recipe.name',
+        read_only=True
+    )
+    image = serializers.ImageField(
+        source='recipe.image',
+        read_only=True
+    )
+    cooking_time = serializers.IntegerField(
+        source='recipe.cooking_time',
+        read_only=True
+    )
 
     class Meta:
         model = m.Favorited

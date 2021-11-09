@@ -7,6 +7,27 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+
+  db:
+    image: postgres:12.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ../backend/foodgram/foodgram/.env
+
+  web:
+    build: ../backend/
+    restart: always
+    volumes:
+      - static_value:/code/foodgram/static/
+      - media_value:/code/foodgram/media/
+      - migrations:/code/foodgram/recipes/migrations
+      - migrations:/code/foodgram/users/migrations
+    depends_on:
+      - db
+    env_file:
+      - ./api_yamdb/.env
+
   nginx:
     image: nginx:1.19.3
     ports:

@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
@@ -6,21 +7,16 @@ from .models import Subscription
 
 User = get_user_model()
 
-# Вывел FoodgramUserSerializer в отдельный файл для
-# устранения циклического импорта, т.к.
-# users.serializers.py вызвает
-# from recipes.serializers import RecipeSerializer,
-# а recipes.serializers.py вызывает
-# данный FoodgramUserSerializer.
-
 
 class FoodgramUserSerializer(UserSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed')
+        fields = (
+            'email', 'id', 'username', 'first_name',
+            'last_name', 'is_subscribed'
+        )
 
     def get_is_subscribed(self, author):
         """

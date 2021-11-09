@@ -1,15 +1,16 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .filters import RecipeFilter
-from .models import Favorited, Tag, Recipe, ShoppingCart
+from .models import Favorited, Recipe, ShoppingCart, Tag
 from .permissions import IsAuthorOrStaff
-from .serializers import (TagSerializer, RecipeSerializer, FavoritedSerializer,
-                          ShoppingCartSerializer)
+from .serializers import (FavoritedSerializer, RecipeSerializer,
+                          ShoppingCartSerializer, TagSerializer)
 from .utils import get_shopping_cart
 
 
@@ -38,17 +39,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
     * 'recipes/download_shopping_cart/' endpoint allows authenticated user to
     download a shopping_cart as .txt file.
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
-                          IsAuthorOrStaff,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrStaff,
+    )
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
     def get_permissions(self):
-        if self.action in ('favorite',
-                           'shopping_cart',
-                           'download_shopping_cart'):
+        if self.action in (
+            'favorite',
+            'shopping_cart',
+            'download_shopping_cart'
+        ):
             return (permissions.IsAuthenticated(),)
         return super().get_permissions()
 
@@ -61,15 +66,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if request.method == 'DELETE':
-            favorited = get_object_or_404(Favorited,
-                                          recipe=self.kwargs.get('pk'),
-                                          user=request.user)
+            favorited = get_object_or_404(
+                Favorited,
+                recipe=self.kwargs.get('pk'),
+                user=request.user
+            )
             favorited.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -82,22 +93,31 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
             if serializer.is_valid():
                 serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         if request.method == 'DELETE':
-            favorited = get_object_or_404(ShoppingCart,
-                                          recipe=self.kwargs.get('pk'),
-                                          user=request.user)
+            favorited = get_object_or_404(
+                ShoppingCart,
+                recipe=self.kwargs.get('pk'),
+                user=request.user
+            )
             favorited.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, request):
         sending_data = get_shopping_cart(request)
-        return HttpResponse(sending_data, headers={
-            'Content-Type': 'text/plain',
-            'Content-Disposition': 'attachment; filename="shopping_cart.txt"'
-        })
+        return HttpResponse(
+            sending_data, headers={
+                'Content-Type': 'text/plain',
+                'Content-Disposition': ('attachment;'
+                                        'filename="shopping_cart.txt"')
+            }
+        )
