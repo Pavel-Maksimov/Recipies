@@ -1,16 +1,17 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
-from .models import Favorited, Recipe, ShoppingCart, Tag
+from .filters import IngredientFilter, RecipeFilter
+from .models import Favorited, Ingredient, Recipe, ShoppingCart, Tag
+from .pagination import LimitPagePagination
 from .permissions import IsAuthorOrStaff
-from .serializers import (FavoritedSerializer, RecipeSerializer,
-                          ShoppingCartSerializer, TagSerializer)
+from .serializers import (FavoritedSerializer, IngredientSerializer,
+                          RecipeSerializer, ShoppingCartSerializer,
+                          TagSerializer)
 from .utils import get_shopping_cart
 
 
@@ -20,8 +21,26 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
     * Available for all users.
     """
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+    )
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+
+
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    View to .list() and .retrieve() ingredientss.
+
+    * Available for all users.
+    """
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+    )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -47,6 +66,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
+    pagination_class = LimitPagePagination
 
     def get_permissions(self):
         if self.action in (

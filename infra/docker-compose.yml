@@ -21,12 +21,10 @@ services:
     volumes:
       - static_value:/code/foodgram/static/
       - media_value:/code/foodgram/media/
-      - migrations:/code/foodgram/recipes/migrations
-      - migrations:/code/foodgram/users/migrations
     depends_on:
       - db
     env_file:
-      - ./api_yamdb/.env
+      - ../backend/foodgram/foodgram/.env
 
   nginx:
     image: nginx:1.19.3
@@ -37,3 +35,12 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
       - ../docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - static_value:/var/html/static/
+      - media_value:/var/html/media/
+    depends_on:
+      - web
+
+volumes:
+  postgres_data:
+  static_value:
+  media_value:

@@ -81,7 +81,7 @@ class Recipe(models.Model):
         related_name='recipies',
         verbose_name='Теги'
     )
-    using_ingredients = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientContent',
         verbose_name='Ингредиенты'
@@ -106,12 +106,12 @@ class IngredientContent(models.Model):
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        related_name='ingredient_to_recipe'
+        related_name='recipes'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredients'
+        related_name='using_ingredients'
     )
     amount = models.PositiveIntegerField('Количество в рецепте')
 
@@ -119,7 +119,7 @@ class IngredientContent(models.Model):
         verbose_name = 'Содержание ингредиента в рецепте'
         verbose_name_plural = 'Содержание ингредиентов в рецепте'
         models.UniqueConstraint(
-            fields=('ingredient', 'recipe'),
+            fields=('using_ingredient', 'recipes'),
             name='once_added_ingredient'
         )
 

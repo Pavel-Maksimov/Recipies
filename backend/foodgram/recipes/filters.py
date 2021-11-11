@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 import django_filters
 
 from .models import Favorited, ShoppingCart
@@ -25,10 +27,10 @@ class RecipeFilter(django_filters.FilterSet):
     tags = django_filters.CharFilter(
         field_name='tags__slug', lookup_expr='iexact'
     )
-    is_in_shopping_cart = django_filters.NumberFilter(
+    is_in_shopping_cart = django_filters.BooleanFilter(
         method='check_recipes'
     )
-    is_favorited = django_filters.NumberFilter(
+    is_favorited = django_filters.BooleanFilter(
         method='check_recipes'
     )
 
@@ -45,8 +47,28 @@ class RecipeFilter(django_filters.FilterSet):
                 )
                 field = 'fans'
             lookup = '__'.join([field, 'in'])
-            if value == 1:
+            if value is True:
                 return queryset.filter(**{lookup: filtering_queryset})
-            if value == 0:
+            if value is False:
                 return queryset.exclude(**{lookup: filtering_queryset})
         return queryset
+
+    def check_favorited(self, queryset, name, value):
+        if self.request.user.is_authenticated:
+            if value is True:
+                favorites = Favorited.objects.filter(
+                    user=self.request.user
+                )
+                return queryset.filter(fans__in=favorites)
+        return queryset
+
+
+class IngredientFilter(django_filters.FilterSet):
+    name = django_filters.CharFilter(
+         field_name='name',
+         lookup_expr='icontains',
+         method='uncode_url'
+    )
+
+    def uncode_url(self, queryset,  name, value):
+        return queryset.filter(name__icontains=unquote(value))

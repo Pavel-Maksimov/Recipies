@@ -1,10 +1,8 @@
 from django.contrib.auth import get_user_model
-
 from djoser.serializers import UserCreateSerializer
-from rest_framework import serializers
-
 from recipes.models import Recipe
 from recipes.serializers import RecipeSerializer
+from rest_framework import serializers
 
 from .models import Subscription
 from .user_serializer import FoodgramUserSerializer

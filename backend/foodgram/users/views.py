@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-
 from djoser.views import UserViewSet
+from recipes.pagination import LimitPagePagination
 from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import ListAPIView
@@ -25,6 +25,7 @@ class FoodgramUserViewSet(UserViewSet):
     and unsubscribe to other users.
     """
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitPagePagination
 
     def get_permissions(self):
         if self.action == 'subscribe':
@@ -71,6 +72,7 @@ class SubscriptionsAPIView(ListAPIView):
     """
     serializer_class = SubscriptionSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = LimitPagePagination
 
     def get_queryset(self):
         return Subscription.objects.filter(subscriber=self.request.user.id)

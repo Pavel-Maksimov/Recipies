@@ -1,6 +1,5 @@
 from drf_base64.fields import Base64ImageField
 from rest_framework import serializers, validators
-
 from users.user_serializer import FoodgramUserSerializer
 
 from . import models as m
@@ -28,6 +27,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=m.Ingredient.objects.all(),
+    )
+    name = serializers.CharField(read_only=True)
+    measurement_unit = serializers.CharField(read_only=True)
 
     class Meta:
         model = m.Ingredient
@@ -36,15 +40,17 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientContentSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
-        queryset=m.Ingredient.objects.all(),
         source='ingredient.id',
+        queryset=m.Ingredient.objects.all(),
         validators=[validators.UniqueValidator(
             queryset=m.Ingredient.objects.all(),
             message='В рецепт ингредиент можно добавлять только единожды'
         )]
     )
-    name = serializers.CharField(source='ingredient.name',
-                                 read_only=True)
+    name = serializers.CharField(
+        source='ingredient.name',
+        read_only=True
+    )
     measurement_unit = serializers.CharField(
         source='ingredient.measurement_unit',
         read_only=True
@@ -57,7 +63,9 @@ class IngredientContentSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = IngredientContentSerializer(many=True)
+    ingredients = IngredientContentSerializer(
+        source='using_ingredients',
+        many=True)
     tags = TagField(
         many=True,
         queryset=m.Tag.objects.all()
@@ -111,7 +119,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             text=validated_data['text'],
             cooking_time=validated_data['cooking_time'],
         )
-        ingredients = validated_data['ingredients']
+        ingredients = validated_data['using_ingredients']
         for ingredient in ingredients:
             ingr, amount = ingredient.values()
             m.IngredientContent.objects.create(
@@ -133,7 +141,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
         instance.save()
         m.IngredientContent.objects.filter(recipe=instance).delete()
-        ingredients = validated_data['ingredients']
+        ingredients = validated_data['using_ingredients']
         for ingredient in ingredients:
             ingr, amount = ingredient.values()
             m.IngredientContent.objects.create(
@@ -143,6 +151,15 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         instance.tags.set(validated_data['tags'])
         return instance
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if self.context['request'].method == 'POST':
+            representation.pop('id')
+            representation.pop('author')
+            representation.pop('is_favorited')
+            representation.pop('is_in_shopping_cart')
+        return representation
 
 
 class FavoritedSerializer(serializers.ModelSerializer):
