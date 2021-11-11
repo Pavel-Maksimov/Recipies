@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
 
+from .colors import COLORS
 from .measurement_units import MEASUREMENT_UNIT_CHOICES
 
 User = get_user_model()
@@ -16,7 +17,8 @@ class Tag(models.Model):
     color = models.CharField(
         'Цвет в HEX',
         max_length=7,
-        default='#49B64E'
+        default='#49B64E',
+        choices=COLORS
     )
     slug = models.SlugField(
         'Уникальный слаг',

@@ -1,6 +1,7 @@
 from urllib.parse import unquote
 
 import django_filters
+from rest_framework import filters
 
 from .models import Favorited, ShoppingCart
 
@@ -12,20 +13,20 @@ class RecipeFilter(django_filters.FilterSet):
     Accepted query parameters:
     -'author' - integer, show recipes, that's author has the entered id;
     -'tags' - slug, show recipes with entered tags;
-    -'is_in_shopping_cart' - integer, accept valies:
-        0 - show recipes not included into current user's shopping_cart;
-        1 - show recipes included into current user's shopping_cart;
-    -'is_favorited' - integer, accept valies:
-        0 - show recipes not included into current user's list
+    -'is_in_shopping_cart' - bool, accept valies:
+        false - show recipes not included into current user's shopping_cart;
+        true - show recipes included into current user's shopping_cart;
+    -'is_favorited' - bool, accept valies:
+        false - show recipes not included into current user's list
             of favorited recipes;
-        1 - show recipes included into current user's list
+        true - show recipes included into current user's list
             of favorited recipes;
     """
     author = django_filters.NumberFilter(
         field_name='author__id',
     )
     tags = django_filters.CharFilter(
-        field_name='tags__slug', lookup_expr='iexact'
+        field_name='tags__slug', lookup_expr='union'
     )
     is_in_shopping_cart = django_filters.BooleanFilter(
         method='check_recipes'
@@ -51,15 +52,6 @@ class RecipeFilter(django_filters.FilterSet):
                 return queryset.filter(**{lookup: filtering_queryset})
             if value is False:
                 return queryset.exclude(**{lookup: filtering_queryset})
-        return queryset
-
-    def check_favorited(self, queryset, name, value):
-        if self.request.user.is_authenticated:
-            if value is True:
-                favorites = Favorited.objects.filter(
-                    user=self.request.user
-                )
-                return queryset.filter(fans__in=favorites)
         return queryset
 
 

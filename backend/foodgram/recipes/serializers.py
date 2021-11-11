@@ -42,10 +42,10 @@ class IngredientContentSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient.id',
         queryset=m.Ingredient.objects.all(),
-        validators=[validators.UniqueValidator(
+        validators=(validators.UniqueValidator(
             queryset=m.Ingredient.objects.all(),
             message='В рецепт ингредиент можно добавлять только единожды'
-        )]
+        ),)
     )
     name = serializers.CharField(
         source='ingredient.name',
