@@ -42,7 +42,7 @@ $ docker exec -it <container_id> python manage.py loaddata fixtures.json
 ```
 $ docker-compose down
 ```
-Имя сервера: ***pavelmaksimov.ml***<br>
+Имя сервера: ***http://pavelmaksimov.ml/***<br>
 Тестовый юзер:<br>
 Электронная почта: ivan@mail.ru<br>
 Пароль: jackson200300
