@@ -1,3 +1,4 @@
+![foodgram_workflow](https://github.com/Pavel-Maksimov/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
 # Проект Foodgram
 Foodgram - это сервис для публикации рецептов. Авторизованные пользователи могут подписываться на понравившихся авторов, добавлять рецепты в избранное, в покупки, скачать список покупок ингредиентов для добавленных в покупки рецептов.<br>
 ### Развёртывание проекта <br>
@@ -41,3 +42,7 @@ $ docker exec -it <container_id> python manage.py loaddata fixtures.json
 ```
 $ docker-compose down
 ```
+Имя сервера: ***pavelmaksimov.ml***<br>
+Тестовый юзер:<br>
+Электронная почта: ivan@mail.ru<br>
+Пароль: jackson200300
