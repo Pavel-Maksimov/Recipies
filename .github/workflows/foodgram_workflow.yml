@@ -48,7 +48,8 @@ jobs:
         script: |
           sudo docker-compose stop
           sudo docker-compose rm web
-          touch foodgram.env
+          mkdir foodgram
+          touch foodgram/.env
           echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> foodgram.env
           echo DB_NAME=${{ secrets.DB_NAME }} >> foodgram.env
           echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> foodgram.env
