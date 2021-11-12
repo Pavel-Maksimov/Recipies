@@ -26,7 +26,7 @@ class RecipeFilter(django_filters.FilterSet):
         field_name='author__id',
     )
     tags = django_filters.CharFilter(
-        field_name='tags__slug', lookup_expr='union'
+        field_name='tags__slug', lookup_expr='iexact'
     )
     is_in_shopping_cart = django_filters.BooleanFilter(
         method='check_recipes'

@@ -26,12 +26,24 @@ class IngredientContentAdmin(admin.ModelAdmin):
     empty_value_display = settings.ADMIN_EMPTY_VALUE
 
 
+class IngredientContentsInLine(admin.TabularInline):
+    model = IngredientContent
+    extra = 1
+    verbose_name = 'ингредиент в состав рецепта'
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'name', 'text',
                     'cooking_time',)
     list_filter = ('author', 'name', 'tags',)
     empty_value_display = settings.ADMIN_EMPTY_VALUE
+    inlines = (IngredientContentsInLine,)
+    readonly_fields = ('favorited_count',)
+
+    @admin.display(description='Количество добавлений в избранное')
+    def favorited_count(self, instance):
+        return Favorited.objects.filter(recipe=instance).count()
 
 
 @admin.register(Favorited, ShoppingCart)
