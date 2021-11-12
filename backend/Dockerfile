@@ -2,11 +2,11 @@ FROM python:3.8.5
 
 WORKDIR /code
 
-COPY requirements.txt .
+COPY /backend/requirements.txt .
 
 RUN pip3 install -r requirements.txt
 
-COPY . .
+COPY /backend .
 
 WORKDIR /code/foodgram
 
