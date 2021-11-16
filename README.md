@@ -45,4 +45,4 @@ $ docker-compose down
 Имя сервера: ***http://pavelmaksimov.ml/***<br>
 Тестовый юзер:<br>
 Электронная почта: ivan@mail.ru<br>
-Пароль: jackson200300
+Пароль: gibbson12345
