@@ -1,5 +1,6 @@
 from drf_base64.fields import Base64ImageField
-from rest_framework import serializers, validators
+from rest_framework import serializers
+
 from users.user_serializer import FoodgramUserSerializer
 
 from . import models as m
@@ -42,10 +43,6 @@ class IngredientContentSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient.id',
         queryset=m.Ingredient.objects.all(),
-        validators=(validators.UniqueValidator(
-            queryset=m.Ingredient.objects.all(),
-            message='В рецепт ингредиент можно добавлять только единожды'
-        ),)
     )
     name = serializers.CharField(
         source='ingredient.name',
@@ -55,7 +52,11 @@ class IngredientContentSerializer(serializers.ModelSerializer):
         source='ingredient.measurement_unit',
         read_only=True
     )
-    amount = serializers.IntegerField()
+    amount = serializers.IntegerField(
+        error_messages={
+            'invalid': 'Введите правильное число для количества ингредиента'
+        }
+    )
 
     class Meta:
         model = m.IngredientContent
@@ -72,7 +73,11 @@ class RecipeSerializer(serializers.ModelSerializer):
     )
     author = FoodgramUserSerializer(
         read_only=True, default=serializers.CurrentUserDefault())
-    image = CustomImageFiled()
+    image = CustomImageFiled(
+        error_messages={
+            'invalid': 'Не удаётся распознать изображение'
+        },
+    )
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
 
@@ -82,6 +87,13 @@ class RecipeSerializer(serializers.ModelSerializer):
             'id', 'tags', 'author', 'ingredients', 'is_favorited',
             'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time'
         )
+        extra_kwargs = {
+            'cooking_time': {
+                'error_messages': {
+                    'invalid': 'Введите правильное время приготовления (число)'
+                }
+            }
+        }
 
     def get_is_favorited(self, obj):
         """
@@ -111,6 +123,27 @@ class RecipeSerializer(serializers.ModelSerializer):
                 return True
         return False
 
+    def check_add_ingredients(self, ingredients, recipe):
+        for ingredient in ingredients:
+            ingr, amount = ingredient.values()
+            if m.IngredientContent.objects.filter(
+                recipe=recipe,
+                ingredient=ingr['id']
+            ).exists():
+                raise serializers.ValidationError(
+                    detail={
+                        'ingredients': (
+                            'В рецепт каждый ингредиент можно'
+                            ' добавлять только единожды'
+                            )
+                        }
+                )
+            m.IngredientContent.objects.create(
+                recipe=recipe,
+                ingredient=ingr['id'],
+                amount=amount
+            )
+
     def create(self, validated_data):
         new_recipe = m.Recipe.objects.create(
             author=self.context['request'].user,
@@ -120,13 +153,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             cooking_time=validated_data['cooking_time'],
         )
         ingredients = validated_data['using_ingredients']
-        for ingredient in ingredients:
-            ingr, amount = ingredient.values()
-            m.IngredientContent.objects.create(
-                recipe=new_recipe,
-                ingredient=ingr['id'],
-                amount=amount
-            )
+        self.check_add_ingredients(ingredients, new_recipe)
         new_recipe.tags.set(validated_data['tags'])
         return new_recipe
 
@@ -142,13 +169,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance.save()
         m.IngredientContent.objects.filter(recipe=instance).delete()
         ingredients = validated_data['using_ingredients']
-        for ingredient in ingredients:
-            ingr, amount = ingredient.values()
-            m.IngredientContent.objects.create(
-                recipe=instance,
-                ingredient=ingr['id'],
-                amount=amount
-            )
+        self.check_add_ingredients(ingredients, instance)
         instance.tags.set(validated_data['tags'])
         return instance
 

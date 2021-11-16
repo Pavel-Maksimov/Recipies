@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
+from reportlab.pdfgen import canvas
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,7 +14,7 @@ from .permissions import IsAuthorOrStaff
 from .serializers import (FavoritedSerializer, IngredientSerializer,
                           RecipeSerializer, ShoppingCartSerializer,
                           TagSerializer)
-from .utils import get_shopping_cart
+from .utils import create_pdf, get_shopping_cart
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -134,10 +136,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, request):
         sending_data = get_shopping_cart(request)
-        return HttpResponse(
-            sending_data, headers={
-                'Content-Type': 'text/plain',
-                'Content-Disposition': ('attachment;'
-                                        'filename="shopping_cart.txt"')
-            }
-        )
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="somefilename.pdf"')
+        pdf = canvas.Canvas(response)
+        create_pdf(pdf, sending_data)
+        return response

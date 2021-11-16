@@ -124,6 +124,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'EXCEPTION_HANDLER': 'recipes.utils.custom_exception_handler',
 }
 
 DEFAULT_PAGE_SIZE = 6

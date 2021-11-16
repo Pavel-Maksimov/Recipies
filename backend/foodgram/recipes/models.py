@@ -115,15 +115,14 @@ class IngredientContent(models.Model):
         on_delete=models.CASCADE,
         related_name='using_ingredients'
     )
-    amount = models.PositiveIntegerField('Количество в рецепте')
+    amount = models.PositiveIntegerField(
+        'Количество в рецепте',
+        error_messages={'invalid': 'Неверное значение'})
 
     class Meta:
         verbose_name = 'Содержание ингредиента в рецепте'
         verbose_name_plural = 'Содержание ингредиентов в рецепте'
-        models.UniqueConstraint(
-            fields=('using_ingredient', 'recipes'),
-            name='once_added_ingredient'
-        )
+        unique_together = [('ingredient', 'recipe')]
 
     def __str__(self):
         return (
