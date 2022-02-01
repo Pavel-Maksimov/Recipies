@@ -42,8 +42,4 @@ $ docker exec -it <container_id> python manage.py loaddata fixtures.json
 ```
 $ docker-compose down
 ```
-Имя сервера: ***http://pavelmaksimov.ml/***<br>
-Ip-адрес: http://178.154.195.76/
-Тестовый юзер:<br>
-Электронная почта: ivan@mail.ru<br>
-Пароль(исправленный): gibbson12345
+
